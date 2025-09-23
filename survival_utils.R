@@ -7,17 +7,21 @@
 
 
 
+
+
+#' Calculate time difference between two dates
+#'
+#' @description
 #' Calculate difference in months between two dates
 #'
 #' @param date1   Date. First date (usually later date).
 #' @param date2   Date. Second date (earlier date).
 #' @param unit    String. One of "days", "months", or "years". (Default "months").
+#'
 #' @description   In case for unit = "years", it uses the average year value of 365.25,
-#'                for unit = "months" it uses the average year value of 365.25 divided by 12,
+#'                for unit = "months" it uses the average year value of 365.25 divided by 12
 #'
-#'
-
-#' @return        Numeric vector with the same length as date1/2. Difference in months.
+#' @return        Numeric vector with the same length as date1/date2. Difference in months.
 #' @export
 calc_time <- function(date1, date2, unit = "months") {
 
@@ -46,30 +50,31 @@ calc_time <- function(date1, date2, unit = "months") {
 
 
 
-#' Multiplication factor to transform the x-axis of KM curves
-#' define x-Scale
-#'
-#' @param xscale   Character of the form "d_m" (= days to months) or "m_y"
-#'               (= months to years). See details.
-#'
-#' @details
-#' Allowed pairs (`from`_`to`): d_m, d_y, m_d, m_y, y_d, y_m.
-#'
-#' @return         Numeric factor
-#' @export
-get_xscale <- function(xscale = "m_y"){
-  # calculations for the right scale
-  xtrans <- switch(xscale,
-                   d_m = 12/365.25,
-                   d_y = 1/365.25,
-                   m_d = 365.25/12,
-                   m_y = 1/12,
-                   y_d = 365.25,
-                   y_m = 12,
-                   1
-  )
-  return(xtrans)
-}
+# #' @description
+# #' Multiplication factor to transform the x-axis of KM curves
+# #' define x-Scale
+# #'
+# #' @param xscale   Character of the form "d_m" (= days to months) or "m_y"
+# #'               (= months to years). See details.
+# #'
+# #' @details
+# #' Allowed pairs (`from`_`to`): d_m, d_y, m_d, m_y, y_d, y_m.
+# #'
+# #' @return         Numeric factor
+# #' @export
+# get_xscale <- function(xscale = "m_y"){
+#   # calculations for the right scale
+#   xtrans <- switch(xscale,
+#                    d_m = 12/365.25,
+#                    d_y = 1/365.25,
+#                   m_d = 365.25/12,
+#                    m_y = 1/12,
+#                    y_d = 365.25,
+#                    y_m = 12,
+#                    1
+#   )
+#   return(xtrans)
+# }
 
 
 
@@ -83,19 +88,21 @@ get_xscale <- function(xscale = "m_y"){
 
 
 
-
-#' Multiplication factor to transform the x-axis of KM curves
-#' define x-Scale
-#'
-#' @param xscale   Character of the form "d_m" (= days to months) or "m_y"
-#'                 (= months to years) or "m_m" (= remains months). See details.
-#'
-#' @details
-#' Allowed pairs (`from_to`): "d_m", "d_y", "m_d", "m_y", "y_d", "y_m", "d_d", "m_m", "y_y",
-#' or "" / NULL (= no conversion).
-#'
-#' @return         Numeric factor (1 = no conversion)
-#' @export
+# (Helper) Transform the x-achsis of KM curves
+#
+# @description
+# Multiplication factor to transform the x-axis of KM curves
+# define x-Scale
+#
+# @param xscale   Character of the form "d_m" (= days to months) or "m_y"
+#                 (= months to years) or "m_m" (= remains months). See details.
+#
+# @details
+# Allowed pairs (`from_to`): "d_m", "d_y", "m_d", "m_y", "y_d", "y_m", "d_d", "m_m", "y_y",
+# or "" / NULL (= no conversion).
+#
+# @return         Numeric factor (1 = no conversion)
+# @export
 # get_xscale <- function(xscale = "m_y"){
 #   # calculations for the right scale
 #   xtrans <- switch(xscale,
@@ -120,7 +127,7 @@ get_xscale <- function(xscale = NULL){
 
   pair <- tolower(xscale)
   if (!grepl("^[dmy]_[dmy]$", pair))
-    stop("❗ 'xscale' must have the pattern: 'd_m', 'm_y', 'm_m', ...")
+    stop("❗'xscale' must have the pattern: 'd_m', 'm_y', 'm_m', ...")
 
 
 
@@ -135,7 +142,7 @@ get_xscale <- function(xscale = NULL){
          d_d = 1,
          m_m = 1,
          y_y = 1,
-         stop("❗ Unknown combination in 'get_xscale()'.")
+         stop("❗Unknown combination in 'get_xscale()'.")
   )
 
 }
@@ -151,7 +158,9 @@ get_xscale <- function(xscale = NULL){
 
 
 
-
+#' (Helper) Median table
+#'
+#' @description
 #' Median Survival (with 95% CI) as a one‑row `tibble`
 #'
 #' @param fit               `survfit` object.
@@ -168,7 +177,7 @@ get_median_table <- function(fit, time_unit = "Years", xscale = "m_y") {
 
   xtrans <- get_xscale(xscale)
 
-  # # summary object
+  # summary object
   tab <- summary(fit)$table
 
   # Get values
@@ -181,7 +190,7 @@ get_median_table <- function(fit, time_unit = "Years", xscale = "m_y") {
   # Output
   data.frame(
     Median_survival = paste0(median, "  [", lcl, "–", ucl, "]"),
-    check.names = FALSE  # verhindert Umwandlung des Spaltennamens
+    check.names = FALSE  # prevents conversion of column name
   ) %>%
     setNames(paste0("Median\n Survival, ", time_unit,"\n[95%-CI]"))
 }
@@ -198,7 +207,9 @@ get_median_table <- function(fit, time_unit = "Years", xscale = "m_y") {
 
 
 
-
+#' (Helper) Follow-up times table
+#'
+#' @description
 #' Survival probabilities at pre‑defined follow‑up times
 #' Follow up Survival probability (in %)
 #'
@@ -264,8 +275,11 @@ get_surv_times <- function(fit,
 
 
 
-
 #' High‑level Kaplan–Meier plot wrapper
+#'
+#' @description
+#' High‑level Kaplan–Meier plot wrapper with add-ons like median & follow-up times table,
+#' table positions, customazation of the scale, title, title-size and more.
 #'
 #' @param data                     Optional `data.frame` containing all variables. used for the risk table. If omitted the
 #'                                 risk table is suppressed (because `ggsurvplot()` requires `data` for that panel).
@@ -391,6 +405,11 @@ create_surv_plot <- function(data = NULL,
 
   return(plot_obj)
 }
+
+
+
+
+
 
 
 
