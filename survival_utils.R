@@ -2,6 +2,8 @@
 
 
 
+
+
 # ______________________________________________________
 #
 ## Survival Analysis ----
@@ -95,7 +97,50 @@ get_xscale <- function(xscale = NULL){
   )
 
 }
+# get_xscale <- function(xscale = "m_y"){
+#   # calculations for the right scale
+#   xtrans <- switch(xscale,
+#                    d_m = 12/365.25,
+#                    d_y = 1/365.25,
+#                   m_d = 365.25/12,
+#                    m_y = 1/12,
+#                    y_d = 365.25,
+#                    y_m = 12,
+#                    1
+#   )
+#   return(xtrans)
+# }
 
+
+
+# (Helper) Transform the x-achsis of KM curves
+#
+# @description
+# Multiplication factor to transform the x-axis of KM curves
+# define x-Scale
+#
+# @param xscale   Character of the form "d_m" (= days to months) or "m_y"
+#                 (= months to years) or "m_m" (= remains months). See details.
+#
+# @details
+# Allowed pairs (`from_to`): "d_m", "d_y", "m_d", "m_y", "y_d", "y_m", "d_d", "m_m", "y_y",
+# or "" / NULL (= no conversion).
+#
+# @return         Numeric factor (1 = no conversion)
+# @export
+# get_xscale <- function(xscale = "m_y"){
+#   # calculations for the right scale
+#   xtrans <- switch(xscale,
+#                    d_m = 12/365.25,
+#                    d_y = 1/365.25,
+#                    m_d = 365.25/12,
+#                    m_y = 1/12,
+#                    y_d = 365.25,
+#                    y_m = 12,
+#                    1
+#   )
+#   return(xtrans)
+# }
 
 
 
@@ -342,6 +387,7 @@ create_surv_plot <- function(data = NULL,
     tbl2 <- as.data.frame(tbl2)
 
 
+
     plot_obj$plot <- plot_obj$plot +
       ggpp::annotate(geom = "table", x = reldata_x(tbl1_pos[1]),  y = reldata_y(tbl1_pos[2]), label = tbl1) +
       ggpp::annotate(geom = "table", x = reldata_x(tbl2_pos[1]),  y = reldata_y(tbl2_pos[2]), label = tbl2)
@@ -359,6 +405,14 @@ create_surv_plot <- function(data = NULL,
 
   return(plot_obj)
 }
+
+
+
+
+
+
+
+
 
 
 
