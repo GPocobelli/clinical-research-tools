@@ -274,8 +274,8 @@ create_surv_plot <- function(data = NULL,
                              title = "Kaplan-Meier curve",
                              title_size = 11,
                              show_tbls = TRUE,
-                             tbl1_pos = c(0.8, 0),
-                             tbl2_pos = c(0, 0),
+                             tbl1_pos = c(0, 0),
+                             tbl2_pos = c(0.8, 0),
                              followup_times = NULL,
                              risk_table_size = 2.7,
                              palette = "black",
@@ -334,9 +334,11 @@ create_surv_plot <- function(data = NULL,
 
 
   if (show_tbls){
-    tbl1 <- get_surv_times(fit, time_unit = time_unit, times = followup_times, xscale = xscale)     # get the Followup Survival Probability in %
+    # get the Median time
+    tbl1 <- get_median_table(fit, time_unit = time_unit, xscale = xscale)
     tbl1 <- as.data.frame(tbl1)
-    tbl2 <- get_median_table(fit, time_unit = time_unit, xscale = xscale)   # get the Median time
+    # get the Followup Survival Probability in %
+    tbl2 <- get_surv_times(fit, time_unit = time_unit, times = followup_times, xscale = xscale)
     tbl2 <- as.data.frame(tbl2)
 
 
