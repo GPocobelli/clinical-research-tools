@@ -110,50 +110,6 @@ get_xscale <- function(xscale = NULL){
   )
 
 }
-# get_xscale <- function(xscale = "m_y"){
-#   # calculations for the right scale
-#   xtrans <- switch(xscale,
-#                    d_m = 12/365.25,
-#                    d_y = 1/365.25,
-#                   m_d = 365.25/12,
-#                    m_y = 1/12,
-#                    y_d = 365.25,
-#                    y_m = 12,
-#                    1
-#   )
-#   return(xtrans)
-# }
-
-
-
-# (Helper) Transform the x-achsis of KM curves
-#
-# @description
-# Multiplication factor to transform the x-axis of KM curves
-# define x-Scale
-#
-# @param xscale   Character of the form "d_m" (= days to months) or "m_y"
-#                 (= months to years) or "m_m" (= remains months). See details.
-#
-# @details
-# Allowed pairs (`from_to`): "d_m", "d_y", "m_d", "m_y", "y_d", "y_m", "d_d", "m_m", "y_y",
-# or "" / NULL (= no conversion).
-#
-# @return         Numeric factor (1 = no conversion)
-# @export
-# get_xscale <- function(xscale = "m_y"){
-#   # calculations for the right scale
-#   xtrans <- switch(xscale,
-#                    d_m = 12/365.25,
-#                    d_y = 1/365.25,
-#                    m_d = 365.25/12,
-#                    m_y = 1/12,
-#                    y_d = 365.25,
-#                    y_m = 12,
-#                    1
-#   )
-#   return(xtrans)
-# }
 
 
 
@@ -304,8 +260,8 @@ get_surv_times <- function(fit,
 #' @param title                    String. Plot title
 #' @param title_size               Numeric. Font size of the title. Defaule = 2.7.
 #' @param show_tbls                Logical. Adds summary tables inside the Kaplan-Meier-plot.
-#' @param tbl1_pos                 Numeric Vector length 2 (x, y) for `get_surv_times()`.
-#' @param tbl2_pos                 Numeric Vector length 2 (x, y) for `get_median_table()`.
+#' @param tbl1_pos                 Numeric Vector length 2 (x, y) for `get_median_table()`.
+#' @param tbl2_pos                 Numeric Vector length 2 (x, y) for `get_surv_times()`.
 #' @param followup_times           Numeric vector of individual length for `get_surv_times()`. Defaut = NULL.
 #' @param risk_table_size          Numeric. Font size of the risk table.
 #' @param ...                      Further arguments forwarded to `ggsurvplot()`
@@ -322,7 +278,18 @@ get_surv_times <- function(fit,
 #' library(survival)
 #' surv <- Surv(time = lung$time, event = lung$status)
 #' fit <- survfit(surv ~ 1, data = lung)
-#' create_surv_plot(lung, fit, xscale = "d_m", x_end = 1300, scale_break = 60.88, time_unit = "Months")
+#' create_surv_plot(
+#'    data = lung,
+#'    fit = fit,
+#'    xscale = "d_m",              # von days → months
+#'    time_unit = "Months",        # Achsenlabel
+#'    scale_break = 182.625,       # 6 Monate Schritte (180 Tage)
+#'    x_end = 1000,                # optional: Ende der x-Achse in Tagen
+#'    title = "Kaplan–Meier Curve",
+#'    tbl2_pos = c(0.8, 0.99), 
+#'    risk_table_size = 4
+#' )
+
 create_surv_plot <- function(data = NULL,
                              fit,
                              time_unit = "Years",
