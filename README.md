@@ -49,10 +49,11 @@ source("path/to/survival_util.R")
 
 <br><br>
 
-## Typical usage  
+## Typical usage
 
 ```r
 # Kaplan–Meier fit
+library(survival) 
 surv <- Surv(time = lung$time, event = lung$status)
 fit <- survfit(surv ~ 1, data = lung)
 
