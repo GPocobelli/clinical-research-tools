@@ -11,7 +11,11 @@
 
  * **Kaplan–Meier plots**:  
    High-level wrapper around `ggsurvplot()` with options for  
-   axis transformation, risk tables, median survival and follow-up times.  
+   axis transformation, risk tables, median survival and follow-up times.
+
+   > :warning: Just for one group for now
+
+<br>
 
  * **Tables**:  
    Ready-to-annotate tables for median survival and follow-up probabilities  
@@ -49,16 +53,24 @@ source("path/to/survival_util.R")
 
 ```r
 # Kaplan–Meier fit
-library(survival)
 surv <- Surv(time = lung$time, event = lung$status)
-fit  <- survfit(surv ~ 1, data = lung)
+fit <- survfit(surv ~ 1, data = lung)
 
-# Plot with tables
-create_surv_plot(lung, fit, xscale = "m_y", time_unit = "Years")
+create_surv_plot(
+    data = lung,
+    fit = fit,
+    xscale = "d_m",              # days to months
+    time_unit = "Months",        
+    scale_break = 182.625,       # 6 months (182.625 days)
+    x_end = 1000,                # optional: end of the x-axis in days
+    title = "Kaplan–Meier Curve",
+    tbl2_pos = c(0.8, 0.99),     # position of the follow up table
+    risk_table_size = 3.5        # fontsize of the values
+)
 ```
 
 <br><br>
 
 
 
-<img width="652" height="469" alt="Rplot" src="https://github.com/user-attachments/assets/166d0f89-9bdd-4be0-b898-726910f7e69e" />
+<img width="906" height="469" alt="Rplot" src="https://github.com/user-attachments/assets/eab49722-653b-4ec2-b758-baa821b97d41" />
