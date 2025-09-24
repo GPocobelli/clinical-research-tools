@@ -281,13 +281,13 @@ get_surv_times <- function(fit,
 #' create_surv_plot(
 #'    data = lung,
 #'    fit = fit,
-#'    xscale = "d_m",              # von days → months
+#'    xscale = "d_m",              # days to months
 #'    time_unit = "Months",        # Achsenlabel
-#'    scale_break = 182.625,       # 6 Monate Schritte (180 Tage)
-#'    x_end = 1000,                # optional: Ende der x-Achse in Tagen
+#'    scale_break = 182.625,       # 6 months (182.625 days)
+#'    x_end = 1000,                # optional: end of the x-axis in days
 #'    title = "Kaplan–Meier Curve",
-#'    tbl2_pos = c(0.8, 0.99), 
-#'    risk_table_size = 4
+#'    tbl2_pos = c(0.8, 0.99),     # position of the follow up table
+#'    risk_table_size = 4          # fontsize of the values
 #' )
 
 create_surv_plot <- function(data = NULL,
