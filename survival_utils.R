@@ -1,13 +1,26 @@
 
 
 
-
-
-
 # ______________________________________________________
 #
 ## Survival Analysis ----
 # ______________________________________________________
+
+
+
+
+# -------- required packages ------------
+
+required_setup_packages <- c("survival", "survminer", "tidyverse", "ggpubr", "ggpp")
+
+for (pkg in required_setup_packages) {
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    install.packages(pkg)
+  }
+}
+
+
+
 
 
 
