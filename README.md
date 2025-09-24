@@ -72,6 +72,4 @@ create_surv_plot(
 
 <br><br>
 
-
-
-<img width="906" height="469" alt="Rplot" src="https://github.com/user-attachments/assets/eab49722-653b-4ec2-b758-baa821b97d41" />
+![Rplot](https://github.com/user-attachments/assets/eab49722-653b-4ec2-b758-baa821b97d41)
