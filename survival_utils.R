@@ -282,7 +282,7 @@ get_surv_times <- function(fit,
 #'    data = lung,
 #'    fit = fit,
 #'    xscale = "d_m",              # days to months
-#'    time_unit = "Months",        # Achsenlabel
+#'    time_unit = "Months", 
 #'    scale_break = 182.625,       # 6 months (182.625 days)
 #'    x_end = 1000,                # optional: end of the x-axis in days
 #'    title = "Kaplan–Meier Curve",
