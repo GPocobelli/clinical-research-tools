@@ -13,7 +13,6 @@
    High-level wrapper around `ggsurvplot()` with options for  
    axis transformation, risk tables, median survival and follow-up times.
 
-   > :warning: Just for one group for now
 
 <br>
 
@@ -50,6 +49,7 @@ source("path/to/survival_util.R")
 <br><br>
 
 ## Typical usage
+### One group
 
 ```r
 # Kaplan–Meier fit
@@ -63,7 +63,6 @@ create_surv_plot(
     xscale = "d_m",              # days to months
     time_unit = "Months",        
     scale_break = 182.625,       # 6 months (182.625 days)
-    x_end = 1000,                # optional: end of the x-axis in days
     title = "Kaplan–Meier Curve",
     tbl2_pos = c(0.8, 0.99),     # position of the follow up table
     risk_table_size = 3.5        # fontsize of the values
@@ -72,4 +71,35 @@ create_surv_plot(
 
 <br><br>
 
-![Rplot](https://github.com/user-attachments/assets/eab49722-653b-4ec2-b758-baa821b97d41)
+<img width="1035" height="634" alt="grafik" src="https://github.com/user-attachments/assets/d954c778-dabd-4966-83d2-a1c34819a26e" />
+
+
+
+<br><br><br><br>
+
+
+
+### Two groups
+
+```r
+# Kaplan–Meier fit
+lung <- lung %>%
+  mutate(sex = case_when(sex == 1 ~ "Male", sex == 2 ~ "Female"))
+fit <- survfit(Surv(time, status) ~ sex, data = lung)
+
+create_surv_plot(lung,
+    fit,
+    xscale = "d_m",
+    scale_break = 182.625,
+    title = "Kaplan–Meier Curve",
+    tbl1_pos = c(0.3, 1.2),
+    tbl2_pos = c(1, 1.2),
+    risk.table.y.text = FALSE,
+    risk.table.y.text.col = TRUE,
+    risk.table.col = "black")
+```
+
+<br><br>
+
+<img width="1035" height="634" alt="grafik" src="https://github.com/user-attachments/assets/b1906f10-2328-46c8-a3e1-e1bdd8a66ff3" />
+
