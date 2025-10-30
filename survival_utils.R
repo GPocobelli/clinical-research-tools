@@ -104,50 +104,7 @@ get_xscale <- function(xscale = NULL){
   )
 
 }
-# get_xscale <- function(xscale = "m_y"){
-#   # calculations for the right scale
-#   xtrans <- switch(xscale,
-#                    d_m = 12/365.25,
-#                    d_y = 1/365.25,
-#                   m_d = 365.25/12,
-#                    m_y = 1/12,
-#                    y_d = 365.25,
-#                    y_m = 12,
-#                    1
-#   )
-#   return(xtrans)
-# }
 
-
-
-# (Helper) Transform the x-achsis of KM curves
-#
-# @description
-# Multiplication factor to transform the x-axis of KM curves
-# define x-Scale
-#
-# @param xscale   Character of the form "d_m" (= days to months) or "m_y"
-#                 (= months to years) or "m_m" (= remains months). See details.
-#
-# @details
-# Allowed pairs (`from_to`): "d_m", "d_y", "m_d", "m_y", "y_d", "y_m", "d_d", "m_m", "y_y",
-# or "" / NULL (= no conversion).
-#
-# @return         Numeric factor (1 = no conversion)
-# @export
-# get_xscale <- function(xscale = "m_y"){
-#   # calculations for the right scale
-#   xtrans <- switch(xscale,
-#                    d_m = 12/365.25,
-#                    d_y = 1/365.25,
-#                    m_d = 365.25/12,
-#                    m_y = 1/12,
-#                    y_d = 365.25,
-#                    y_m = 12,
-#                    1
-#   )
-#   return(xtrans)
-# }
 
 
 
@@ -249,27 +206,12 @@ get_median_table <- function(fit, xscale = "m_y") {
                   "NR")
 
   out <- tibble::tibble(
-    Group = grp,
+    `Group ` = grp,
     Median = fmt
   )
 
-  names(out)[2] <- paste0("Median Survival, ", time_unit, "\n[95%-CI]")
+  names(out)[2] <- paste0("Median Survival, \n", time_unit, " [95%-CI]")
   out
-
-
-  # # Get values
-  # records <- tab["records"]
-  # events  <- tab["events"]
-  # median  <- round(tab["median"] * xtrans, 2)
-  # lcl     <- round(tab["0.95LCL"] * xtrans, 2)
-  # ucl     <- round(tab["0.95UCL"] * xtrans, 2)
-  #
-  # # Output
-  # data.frame(
-  #   Median_survival = paste0(median, "  [", lcl, "–", ucl, "]"),
-  #   check.names = FALSE  # prevents conversion of column name
-  # ) %>%
-  #   setNames(paste0("Median\n Survival, ", time_unit,"\n[95%-CI]"))
 }
 
 
@@ -331,12 +273,11 @@ get_surv_times <- function(fit,
 
 
   # Group labels (e.g., "group=A" -> "A")
-
   grp <- if (!is.null(surv_summary$strata)) {
     sub("^.*?=", "", surv_summary$strata)
     }
   else {
-    rep("Overall", length(surv_summary$time))
+    rep("Overall, [95%-CI]", length(surv_summary$time))
   }
 
   FU_id  <- surv_summary$time * xtrans
@@ -369,33 +310,176 @@ get_surv_times <- function(fit,
   # Ensure stable column order (Group first)
   df_wide <- dplyr::arrange(df_wide, .FU_id)
   df_wide$.FU_id <- NULL
-  names(df_wide)[1] <- paste0("Follow up in ", time_unit)
+  names(df_wide)[1] <- paste0("Follow up\n in ", time_unit)
 
   as.data.frame(df_wide, stringsAsFactors = FALSE)
-
-
-
-  # ---
-
-  # summary object surv_summary <- summary(fit, times = times) # Group labels (e.g., "group=A" -> "A") if (!is.null(surv_summary$strata)) { grp <- sub("^.*?=", "", surv_summary$strata) } else { grp <- rep("Overall", length(surv_summary$time)) } df_long <- tibble::tibble( Group = grp, FU = round(surv_summary$time * xtrans, 2), Surv = sprintf("%.2f%% [%.2f–%.2f]", surv_summary$surv * 100, surv_summary$lower * 100, surv_summary$upper * 100) ) # Make a compact wide table: one row per Group, one column per FU point df_wide <- tidyr::pivot_wider( df_long, id_cols = Group, names_from = FU, values_from = Surv, names_sort = TRUE, names_glue = paste0("Follow up = ", "{FU}", " ", "\nSurvival (%), [95%-CI]") ) # Ensure stable column order (Group first) df_wide <- df_wide[, c("Group", setdiff(names(df_wide), "Group"))] df_wide
-
-
-
-  #
-  # time_months <- round(surv_summary$time, 2)
-  # surv_percent <- round(surv_summary$surv * 100, 2)
-  # ci_lower <- round(surv_summary$lower * 100, 2)
-  # ci_upper <- round(surv_summary$upper * 100, 2)
-  #
-  #
-  # # table
-  # tibble::tibble(
-  #   FU_in_Years = round(time_months * xtrans, 2),
-  #   Survival =  paste0(surv_percent, "% [", ci_lower, "–", ci_upper, "]")) %>%
-  #
-  #   rename_with(~ c(paste0("Follow up\nin ", time_unit),
-  #                   paste0("Survival probability (%),\n[95%-CI]")))
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#' @param cox_fit        coxph object
+#' @param conf.level     numeric, confidence level for Wald CI (default 0.95)
+#' @param digits_hr      int, rounding for HR & CI
+#' @param digits_p       int, rounding for p-values (sehr kleine p als "<1e-xx")
+#'
+#' @return               data.frame with columns: Gruppe, `HR [95% CI]`, p
+#' @export
+get_cox_table <- function(cox_fit,
+                                  conf.level = 0.95,
+                                  digits_hr  = 2,
+                                  digits_p   = 3) {
+
+  stopifnot(inherits(cox_fit, "coxph"))
+
+  s  <- summary(cox_fit)
+  coef <- s$coefficients
+  if (is.null(coef) || nrow(coef) == 0L) {
+    return(data.frame(Gruppe = character(),
+                      `HR [95% CI]` = character(),
+                      p = character(),
+                      check.names = FALSE))
+  }
+
+  # Extract all variables from the cox model output
+  zcrit <- stats::qnorm(1 - (1 - conf.level)/2)
+  logHR <- coef[, "coef"]
+  SE    <- coef[, "se(coef)"]
+  lo    <- logHR - zcrit * SE
+  hi    <- logHR + zcrit * SE
+
+  HR    <- exp(logHR)
+  HR_lo <- exp(lo)
+  HR_hi <- exp(hi)
+
+  # Format-helper
+  fmt_num <- function(x, d) format(round(x, d), nsmall = d, trim = TRUE, scientific = FALSE)
+  fmt_p   <- function(p) {
+    if (is.na(p)) return(NA_character_)
+    if (p < 10^-(digits_p+1)) {
+      paste0("<", format(10^-(digits_p+1), scientific = TRUE))
+    } else {
+      format(round(p, digits_p), nsmall = digits_p, trim = TRUE, scientific = FALSE)
+    }
+  }
+
+  term_names <- rownames(coef)
+  pretty_term <- function(x) {
+    if (grepl("=", x)) {
+      sub("^([^=]+)=(.*)$", "\\1: \\2", x)
+    } else {
+      x
+    }
+  }
+  grp <- vapply(term_names, pretty_term, character(1))
+
+  grp <- stringr::str_to_sentence(grp)
+
+  hr_txt <- paste0(fmt_num(HR, digits_hr), " [",
+                   fmt_num(HR_lo, digits_hr), "–",
+                   fmt_num(HR_hi, digits_hr), "]")
+
+  p_txt  <- vapply(coef[, "Pr(>|z|)"], fmt_p, character(1))
+
+  df <- data.frame(
+    Strata = grp,
+    check.names = FALSE,
+    `HR [95% CI]` = hr_txt,
+    p = p_txt,
+    stringsAsFactors = FALSE
+  )
+
+  rownames(df) <- NULL
+  df
+}
+
+
+
+
+
+
+
+
+
+
+
+
+#' (Helper) Normalize show_tbls specification
+#'
+#' @param show_tbls     various types: logical scalar; logical vector (len 2/3);
+#'                      named logical vector with names among c("median","followup","cox");
+#'                      character vector with any of those names.
+#' @param has_cox       logical; whether a Cox fit was provided
+#' @return              named logical vector c(median=., followup=., cox=.)
+#' @export
+normalize_show_tbls <- function(show_tbls, has_cox) {
+
+  valid_names <- c("median", "followup", "cox")
+
+  # defaults mimic previous behavior: median & followup shown, cox shown if available
+  defaults <- c(median = TRUE, followup = TRUE, cox = has_cox)
+
+  # scalar logical
+  if (is.logical(show_tbls) && length(show_tbls) == 1L) {
+    return(setNames(rep(isTRUE(show_tbls), 3), valid_names))
+  }
+
+  # character vector (names of tables to show)
+  if (is.character(show_tbls)) {
+    nm <- tolower(show_tbls)
+    if (!all(nm %in% valid_names)) {
+      stop("`show_tbls` character values must be among: ", paste(valid_names, collapse = ", "))
+    }
+    out <- setNames(rep(FALSE, 3), valid_names)
+    out[nm] <- TRUE
+    return(out)
+  }
+
+  # logical vector (possibly named) length 2 or 3
+  if (is.logical(show_tbls)) {
+    # named logical: use provided names; others keep default
+    if (!is.null(names(show_tbls))) {
+      nm <- tolower(names(show_tbls))
+      if (!all(nm %in% valid_names)) {
+        stop("`show_tbls` named logical must use names among: ", paste(valid_names, collapse = ", "))
+      }
+      out <- defaults
+      out[nm] <- as.logical(show_tbls)
+      return(out)
+    }
+
+    # unnamed: length 2 -> c(median, followup), cox = default (has_cox)
+    if (length(show_tbls) == 2L) {
+      return(c(median  = as.logical(show_tbls[1]),
+               followup= as.logical(show_tbls[2]),
+               cox     = has_cox))
+    }
+
+    # unnamed: length 3 -> c(median, followup, cox)
+    if (length(show_tbls) == 3L) {
+      return(setNames(as.logical(show_tbls), valid_names))
+    }
+
+    stop("`show_tbls` logical must be length 1, 2, or 3 (optionally named).")
+  }
+
+  stop("Unsupported `show_tbls` type. Use TRUE/FALSE, a logical vector (len 2/3), a named logical, or a character vector of names.")
+}
+
+
+
 
 
 
@@ -427,8 +511,18 @@ get_surv_times <- function(fit,
 #'                                 Defines the x-scale end point. In *original* time unit.
 #' @param scale_break              Numeric. Break points of the x-scale. Default = 24 months. In *original* time unit.
 #' @param title                    String. Plot title
-#' @param title_size               Numeric. Font size of the title. Defaule = 2.7.
-#' @param show_tbls                Logical. Adds summary tables inside the Kaplan-Meier-plot.
+#' @param title_size               Numeric. Font size of the title. Default = 11.
+#' @param show_tbls                Controls which summary tables are drawn inside the KM-plot.
+#'                                  Accepts:
+#'                                   - `TRUE` / `FALSE`: show all / none (including Cox if `cox_fit` is provided)
+#'                                   - unnamed logical length 2: `c(median, followup)` (Cox uses default = shown if available)
+#'                                   - unnamed logical length 3: `c(median, followup, cox)`
+#'                                   - named logical: any of `c(median = TRUE, followup = FALSE, cox = TRUE)`
+#'                                   - character vector: any of `c("median", "followup", "cox")`
+#'                                  Examples:
+#'                                     `show_tbls = TRUE`; `show_tbls = c(FALSE, TRUE)`;
+#'                                     `show_tbls = c(median = TRUE, followup = FALSE, cox = TRUE)`;
+#'                                     `show_tbls = c("median","cox")`.
 #' @param tbl1_pos                 Numeric Vector length 2 (x, y) for `get_median_table()`.
 #' @param tbl2_pos                 Numeric Vector length 2 (x, y) for `get_surv_times()`.
 #' @param followup_times           Numeric vector of individual length for `get_surv_times()`. Defaut = NULL.
@@ -447,7 +541,8 @@ get_surv_times <- function(fit,
 #' @examples
 #' library(survival)
 #' surv <- Surv(time = lung$time, event = lung$status)
-#' fit <- survfit(surv ~ 1, data = lung)
+#' fit <- survfit(surv ~ sex, data = lung)
+#' cox <- coxph(surv ~ sex, data = lung)
 #' create_surv_plot(
 #'    data = lung,
 #'    fit = fit,
@@ -456,8 +551,12 @@ get_surv_times <- function(fit,
 #'    scale_break = 182.625,       # 6 months (182.625 days)
 #'    x_end = 1000,                # optional: end of the x-axis in days
 #'    title = "Kaplan–Meier Curve",
-#'    tbl2_pos = c(0.8, 0.99),     # position of the follow up table
-#'    risk_table_size = 4          # fontsize of the values
+#'    tbl2_pos = c(0.9, 1.2),     # position of the follow up table
+#'    risk_table_size = 4,         # fontsize of the values
+#'    cox_fit = cox,
+#'    cox_tbl_pos = c(0.5, 0),
+#'    show_cox_if_grouped = T,
+#'    show_tbls = c(T, TRUE)
 #' )
 
 create_surv_plot <- function(data        = NULL,
@@ -475,7 +574,6 @@ create_surv_plot <- function(data        = NULL,
                              palette     = NULL,
                              cox_fit     = NULL,
                              cox_tbl_pos = c(0.9, 0.75),
-                             show_cox_if_grouped = TRUE,
                              ...) {
 
   stopifnot(inherits(fit, "survfit"))
@@ -520,7 +618,7 @@ create_surv_plot <- function(data        = NULL,
   n_groups <- if (is.null(fit$strata)) 1L else length(fit$strata)
 
   if (n_groups == 1L) {
-    # nur setzen, wenn der/die Nutzer:in nichts anderes vorgeben hat
+    # Only set if the user has not specified otherwise
     if (is.null(dots$palette)) base_args$palette <- "black"
     if (is.null(dots$pval))    base_args$pval    <- FALSE
   }
@@ -548,7 +646,7 @@ create_surv_plot <- function(data        = NULL,
   if (is.null(dots$xlim))                   base_args$xlim                   <- c(0, x_end_aligned)
 
 
-  # Nutzer-Argumente überschreiben Defaults (und vermeiden doppelte Namen)
+  # Merge user args with `ggsurvplot` args
   args <- utils::modifyList(base_args, dots, keep.null = TRUE)
 
 
@@ -558,7 +656,6 @@ create_surv_plot <- function(data        = NULL,
   breaks_y <- seq(0, 1.5, by = 0.25)
 
   plot_obj <- do.call(survminer::ggsurvplot, args)
-
 
 
   y_headroom <- 0.25
@@ -573,57 +670,78 @@ create_surv_plot <- function(data        = NULL,
                                 labels = function(x) x * 100,
                                 expand = ggplot2::expansion(mult = c(0.01, 0))) +
 
-    ggplot2::coord_cartesian(xlim = c(0, x_end_aligned), clip = "off") +
+    ggplot2::coord_cartesian(xlim = c(0, x_end_aligned), clip = "on") +
 
     ggplot2::theme(axis.text.x  = element_text(size = title_size),
                    axis.title.x = element_text(size = title_size, face = "bold"),
-                   axis.text.y  = element_text(size = title_size, face = "bold"),
+                   axis.text.y  = element_text(size = title_size),
                    axis.title.y = element_text(size = title_size, face = "bold"),
                    title        = element_text(size = title_size, face = "bold"),
-                   legend.position = if (has_strata && n_groups > 1L) "right" else "none",
-                   legend.justification = c(1, 0)
+                   legend.position = if (has_strata && n_groups > 1L) "bottom" else "none",
+                   legend.direction	= "horizontal",
+                   legend.justification = c(-0.01, 0.5),
+                   legend.box       = "horizontal"
     ) +
-    ggplot2::guides(color = guide_legend(nrow = 3, ncol = 2))
+    ggplot2::guides(color = guide_legend(nrow = 2, byrow = TRUE))
 
 
-  # create tables
-  if (show_tbls){
-    # get the Median time
-    tbl1 <- get_median_table(fit, xscale = xscale)
-    tbl1 <- as.data.frame(tbl1)
-    # get the Followup Survival Probability in %
-    tbl2 <- get_surv_times(fit, times = followup_times, xscale = xscale)
-    tbl2 <- as.data.frame(tbl2)
 
 
-    # annotate them in the plot
-    plot_obj$plot <- plot_obj$plot +
-      ggpp::annotate(geom = "table",
-                     x = reldata_x(tbl1_pos[1]),
-                     y = reldata_y(tbl1_pos[2]),
-                     label = tbl1,
-                     table.theme = make_table_theme(title_size - 2)) +
 
-      ggpp::annotate(geom = "table",
-                     x = reldata_x(tbl2_pos[1]),
-                     y = reldata_y(tbl2_pos[2]),
-                     label = tbl2,
-                     table.theme = make_table_theme(title_size - 2))
+
+
+  # ---- create tables ----
+  has_cox <- !is.null(cox_fit)
+  show_vec <- normalize_show_tbls(show_tbls, has_cox = has_cox)
+  show_median   <- isTRUE(show_vec["median"])
+  show_followup <- isTRUE(show_vec["followup"])
+  show_cox      <- isTRUE(show_vec["cox"])
+
+
+  ## ---- Create & annotate Median / Follow-up tables ----
+  if (show_median || show_followup) {
+
+    if (show_median) {
+      tbl1 <- as.data.frame(get_median_table(fit, xscale = xscale))
+      plot_obj$plot <- plot_obj$plot +
+        ggpp::annotate(geom = "table",
+                       x = reldata_x(tbl1_pos[1]),
+                       y = reldata_y(tbl1_pos[2]),
+                       label = tbl1,
+                       table.theme = make_table_theme(title_size - 2))
+    }
+
+    if (show_followup) {
+      tbl2 <- as.data.frame(get_surv_times(fit, times = followup_times, xscale = xscale))
+      plot_obj$plot <- plot_obj$plot +
+        ggpp::annotate(geom = "table",
+                       x = reldata_x(tbl2_pos[1]),
+                       y = reldata_y(tbl2_pos[2]),
+                       label = tbl2,
+                       table.theme = make_table_theme(title_size - 2))
+    }
   }
 
 
-  # Cox-model table
-  if (!is.null(cox_fit) && (has_strata || !show_cox_if_grouped)) {
+  ## ---- Cox-model table ----
+  if (show_cox && has_cox && has_strata) {
     ctab <- as.data.frame(get_cox_table(cox_fit))
     plot_obj$plot <- plot_obj$plot +
       ggpp::annotate(
         geom = "table",
         x = reldata_x(cox_tbl_pos[1]), y = reldata_y(cox_tbl_pos[2]),
-        label = ctab, table.theme = make_table_theme(title_size - 2))
+        label = ctab,
+        table.theme = make_table_theme(title_size - 2)
+      )
   }
 
 
+
+
+
+# ---- risk table scales ----
   if (!isFALSE(args$risk.table) && !is.null(plot_obj$table)) {
+
 
     plot_obj$table <- plot_obj$table +
       ggplot2::scale_x_continuous(
@@ -645,6 +763,7 @@ create_surv_plot <- function(data        = NULL,
         isTRUE(args$risk.table.y.text.col) &&
         !is.null(plot_obj$table)) {
 
+      ## ---- Strata levels ----
       all_layers <- lapply(seq_along(plot_obj$table$layers),
                            function(i) ggplot2::layer_data(plot_obj$table, i))
       strata_vec <- unlist(lapply(all_layers, function(d)
@@ -654,28 +773,37 @@ create_surv_plot <- function(data        = NULL,
       strata_levels <- unique(stats::na.omit(strata_vec))
       strata_levels <- strata_levels[nchar(strata_levels) > 0]
 
+      # just apply if there are more than 2 groups
       if (length(strata_levels) >= 2) {
+
+        # order like before
         strata_levels <- rev(strata_levels)
-        left_pad <- 0.04 * x_end_aligned   
+
+        # Adjust space left of the table, without changeing something of the y-achsis
+        left_pad <- 0.04 * x_end_aligned   # 4% of the width
         plot_obj$table <- plot_obj$table +
           ggplot2::coord_cartesian(xlim = c(-left_pad, x_end_aligned), clip = "off")
+
 
         marker_df <- data.frame(
           .y = factor(strata_levels, levels = strata_levels),
           .x = -left_pad * 0.5
         )
 
+        # ---- colored label of each strata ----
         plot_obj$table <- plot_obj$table +
           ggplot2::geom_tile(
             data = marker_df,
             mapping = ggplot2::aes(x = .x, y = .y, fill = .y),
-            width = left_pad * 0.8,   
+            width = left_pad * 0.8,
             height = 0.6,
             color = NA,
             inherit.aes = FALSE,
             show.legend = FALSE
           )
 
+        # ---- same palette from the plot ----
+        # same colors as the curves
         if (!is.null(args$palette)) {
           if (is.atomic(args$palette)) {
             vals <- rep_len(args$palette, length(strata_levels))
@@ -686,9 +814,15 @@ create_surv_plot <- function(data        = NULL,
       }
     }
   }
-
   return(plot_obj)
 }
+
+
+
+
+
+
+
 
 
 
