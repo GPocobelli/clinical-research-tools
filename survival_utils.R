@@ -331,6 +331,64 @@ get_surv_times <- function(fit,
 
 
 
+
+
+#' helper functions for the cox table
+
+sanitize_id <- function(s) gsub("[^[:alnum:]]+", "", tolower(s))
+
+
+
+
+#' helper
+pretty_cox_name <- function(rn, cox_fit) {
+  if (grepl("=", rn, fixed = TRUE)) {
+    parts <- strsplit(rn, "=", fixed = TRUE)[[1]]
+    var <- stringr::str_trim(parts[1]); lvl <- stringr::str_trim(parts[2])
+    return(paste0(stringr::str_to_sentence(var), " (", lvl, ")"))
+  }
+  
+  xl <- cox_fit$xlevels
+  if (length(xl)) {
+    srn <- sanitize_id(rn)
+    for (v in names(xl)) {
+      for (lvl in xl[[v]]) {
+        cand <- sanitize_id(paste0(v, lvl))
+        if (identical(cand, srn)) {
+          return(paste0(stringr::str_to_sentence(v), " (", lvl, ")"))
+        }
+      }
+    }
+  }
+  
+  if (grepl("[A-Z]", rn)) {
+    sp <- gsub("([a-z])([A-Z])", "\\1 \\2", rn)
+    parts <- unlist(strsplit(sp, " +"))
+    if (length(parts) >= 2) {
+      var <- paste(parts[-length(parts)], collapse = " ")
+      lvl <- parts[length(parts)]
+      return(paste0(stringr::str_to_sentence(var), " (", lvl, ")"))
+    }
+  }
+  stringr::str_to_sentence(rn)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #' @param cox_fit        coxph object
 #' @param conf.level     numeric, confidence level for Wald CI (default 0.95)
 #' @param digits_hr      int, rounding for HR & CI
@@ -339,9 +397,9 @@ get_surv_times <- function(fit,
 #' @return               data.frame with columns: Gruppe, `HR [95% CI]`, p
 #' @export
 get_cox_table <- function(cox_fit,
-                                  conf.level = 0.95,
-                                  digits_hr  = 2,
-                                  digits_p   = 3) {
+                          conf.level = 0.95,
+                          digits_hr  = 2,
+                          digits_p   = 3) {
 
   stopifnot(inherits(cox_fit, "coxph"))
 
@@ -384,8 +442,8 @@ get_cox_table <- function(cox_fit,
       x
     }
   }
-  grp <- vapply(term_names, pretty_term, character(1))
-
+  grp <- vapply(term_names, pretty_cox_name, character(1), cox_fit = cox_fit)
+  
   grp <- stringr::str_to_sentence(grp)
 
   hr_txt <- paste0(fmt_num(HR, digits_hr), " [",
@@ -432,7 +490,7 @@ normalize_show_tbls <- function(show_tbls, has_cox) {
   # defaults mimic previous behavior: median & followup shown, cox shown if available
   defaults <- c(median = TRUE, followup = TRUE, cox = has_cox)
 
-  # scalar logical
+  #  scalar logical
   if (is.logical(show_tbls) && length(show_tbls) == 1L) {
     return(setNames(rep(isTRUE(show_tbls), 3), valid_names))
   }
@@ -529,6 +587,8 @@ normalize_show_tbls <- function(show_tbls, has_cox) {
 #' @param followup_times           Numeric vector of individual length for `get_surv_times()`. Defaut = NULL.
 #' @param risk_table_size          Numeric. Font size of the risk table.
 #' @param palette                  Vector. Arguments for color-pallett group-specific.
+#' @param cox_fit                  `coxph` object.
+#' @param cox_tbl_pos              Numeric Vector length 2 (x, y). Default = c(0.9, 0.75)
 #' @param ...                      Further arguments forwarded to `ggsurvplot()`
 #'                                 (e.g. `conf.int = TRUE`, `pval = TRUE`, `linetype = "strata"`).
 #'
@@ -817,6 +877,12 @@ create_surv_plot <- function(data        = NULL,
   }
   return(plot_obj)
 }
+
+
+
+
+
+
 
 
 
