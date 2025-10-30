@@ -273,12 +273,13 @@ get_surv_times <- function(fit,
 
 
   # Group labels (e.g., "group=A" -> "A")
+
   grp <- if (!is.null(surv_summary$strata)) {
-    sub("^.*?=", "", surv_summary$strata)
-    }
-  else {
+    paste0(sub("^.*?=", "", surv_summary$strata), ", [95%-CI]")
+  } else {
     rep("Overall, [95%-CI]", length(surv_summary$time))
   }
+
 
   FU_id  <- surv_summary$time * xtrans
   FU_lab <- format(round(FU_id, 0), trim = TRUE, nsmall = 0)
