@@ -74,9 +74,9 @@ create_surv_plot(
 
 <img width="976" height="631" alt="image" src="https://github.com/user-attachments/assets/d5b0017f-640f-4b96-995c-8cf010f4d2c8" />
 
-
-
 <br><br><br><br>
+
+
 
 
 
@@ -104,3 +104,72 @@ create_surv_plot(lung,
 
 <img width="976" height="604" alt="image" src="https://github.com/user-attachments/assets/e2eb911d-07c3-4c05-843b-5e9f09a9be86" />
 
+<br><br><br><br>
+
+
+
+
+
+### Two groups added Cox model table
+```r
+lung <- survival::lung %>%
+    mutate(sex = case_when(sex == 1 ~ "Male", sex == 2 ~ "Female"))
+fit <- survfit(Surv(time, status) ~ sex, data = lung)
+cox_age <- coxph(Surv(time, status) ~ sex, data = lung)
+create_surv_plot(lung,
+                 fit,
+                 xscale = "d_m",
+                 scale_break = 182.625,
+                 title = "Kaplan–Meier Curve",
+                 cox_fit = cox_age,
+                 cox_tbl_pos = c(0.5, 1.2),
+                 risk.table.y.text = FALSE,
+                 risk.table.y.text.col = TRUE,
+                 risk.table.col = "black", ,
+                 pval = F,
+                 show_tbls = c(TRUE, FALSE, TRUE))
+
+```
+<br><br>
+
+<img width="1009" height="631" alt="image" src="https://github.com/user-attachments/assets/1f67dede-ab07-412b-b53c-e05c244f3f76" />
+
+<br><br><br><br>
+
+
+
+
+### Two groups added Cox model table, without follow up table, diefferent color palette
+
+```r
+lung <- survival::lung %>%
+    mutate(sex = case_when(sex == 1 ~ "Male", sex == 2 ~ "Female"))
+fit <- survfit(Surv(time, status) ~ sex, data = lung)
+cox_age <- coxph(Surv(time, status) ~ sex, data = lung)
+
+pal <- c("#EE6677", "#999933")
+
+create_surv_plot(lung,
+                 fit,
+                 xscale = "d_m",
+                 scale_break = 182.625,
+                 title = "Kaplan–Meier Curve",
+                 cox_fit = cox_age,
+                 cox_tbl_pos = c(0.5, 1.2),
+                 risk.table.y.text = FALSE,
+                 risk.table.y.text.col = TRUE,
+                 risk.table.col = "black", ,
+                 pval = TRUE,
+                 show_tbls = c(TRUE, FALSE, TRUE),
+                 palette = pal,
+                 linewidth = 2,
+                 legend.title = "Sex",
+                 pval.method = TRUE,
+                 pval.method.coord = c(15, 1.15),
+                 pval.method.size = 4,
+                 pval.coord = c(15, 1.1),
+                 pval.size = 4)
+```
+<br><br>
+
+<img width="1009" height="631" alt="image" src="https://github.com/user-attachments/assets/f261a917-cf15-4146-8c33-a01bbf629952" />
