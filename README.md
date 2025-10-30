@@ -157,7 +157,7 @@ create_surv_plot(lung,
                  title = "Kaplan–Meier Curve",
                  cox_fit = cox_age,
                  cox_tbl_pos = c(0.5, 1.2),
-                 risk.table.y.text = FALSE,
+                 risk.table.y.text = TRUE,
                  risk.table.y.text.col = TRUE,
                  risk.table.col = "black", ,
                  pval = TRUE,
@@ -173,4 +173,4 @@ create_surv_plot(lung,
 ```
 <br><br>
 
-<img width="1009" height="631" alt="image" src="https://github.com/user-attachments/assets/f261a917-cf15-4146-8c33-a01bbf629952" />
+<img width="966" height="641" alt="image" src="https://github.com/user-attachments/assets/a0d7f7a7-97b2-44f8-bb4a-98555d52bb03" />
