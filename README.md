@@ -11,14 +11,11 @@
 
  * **Kaplan–Meier plots**:  
    High-level wrapper around `ggsurvplot()` with options for  
-   axis transformation, risk tables, median survival and follow-up times.
-
-
-<br>
+   axis transformation, risk tables, median survival and follow-up times.  
 
  * **Tables**:  
-   Ready-to-annotate tables for median survival and follow-up probabilities  
-   (e.g. at 1, 2, 5 years).  
+   Ready-to-annotate tables for median survival, follow-up probabilities (e.g. at 1, 2, 5 years)  
+   and Cox propotional hazards model.  
 
 <br>
 <br>  
@@ -37,12 +34,16 @@ source("path/to/survival_util.R")
 
 <br> <br>
 
-## Available functions  
+## Relevant functions  
 
 - calc_time() – difference between two dates in days, months, or years  
-- get_xscale() – factor for transforming the time axis
-- get_median_table() – one-row table of median survival with 95% CI
-- get_surv_times() – survival probabilities at predefined follow-up times
+- get_xscale() – helper; factor for transforming the time axis
+- get_median_table() – helper; one-row table of median survival with 95% CI
+- get_surv_times() – helper; survival probabilities at predefined follow-up times
+- pretty_cox_name() - helper; transform cox group names in readable format
+- relabel_cox_coefs() - helper; relabeles cox model $coefficient in readable format
+- get_cox_table() - helper; Cox proportional hazards regression model values
+- normalize_show_tbls() - helper; various options to ensure multiple representations of tables
 - create_surv_plot() – wrapper to produce Kaplan–Meier plots with tables
 
 
