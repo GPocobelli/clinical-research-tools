@@ -116,13 +116,13 @@ create_surv_plot(lung,
 lung <- survival::lung %>%
     mutate(sex = case_when(sex == 1 ~ "Male", sex == 2 ~ "Female"))
 fit <- survfit(Surv(time, status) ~ sex, data = lung)
-cox_age <- coxph(Surv(time, status) ~ sex, data = lung)
+cox <- coxph(Surv(time, status) ~ sex, data = lung)
 create_surv_plot(lung,
                  fit,
                  xscale = "d_m",
                  scale_break = 182.625,
                  title = "Kaplan–Meier Curve",
-                 cox_fit = cox_age,
+                 cox_fit = cox,
                  cox_tbl_pos = c(0.5, 1.2),
                  risk.table.y.text = FALSE,
                  risk.table.y.text.col = TRUE,
@@ -146,7 +146,7 @@ create_surv_plot(lung,
 lung <- survival::lung %>%
     mutate(sex = case_when(sex == 1 ~ "Male", sex == 2 ~ "Female"))
 fit <- survfit(Surv(time, status) ~ sex, data = lung)
-cox_age <- coxph(Surv(time, status) ~ sex, data = lung)
+cox <- coxph(Surv(time, status) ~ sex, data = lung)
 
 pal <- c("#EE6677", "#999933")
 
@@ -155,7 +155,7 @@ create_surv_plot(lung,
                  xscale = "d_m",
                  scale_break = 182.625,
                  title = "Kaplan–Meier Curve",
-                 cox_fit = cox_age,
+                 cox_fit = cox,
                  cox_tbl_pos = c(0.5, 1.2),
                  risk.table.y.text = TRUE,
                  risk.table.y.text.col = TRUE,
